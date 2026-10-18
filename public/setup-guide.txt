@@ -1,0 +1,325 @@
+PORTFOLIO TRACKER – SETUP GUIDE
+================================
+
+You can read this yourself or paste it into an AI assistant (ChatGPT, Claude, Gemini…) and say:
+"Walk me through this step by step." Everything the assistant needs is in this file.
+
+WHAT THIS IS
+------------
+A private web page that shows, in plain words, how much money you put into shares/ETFs,
+what they are worth now, and the difference. It needs no server: your own Google Sheet is
+the database and a small script inside the sheet fetches prices every evening.
+
+  Google Sheet (your data)  <->  Apps Script inside it (fetch prices, read/write rows)  <->  this web page
+
+Everything stays in your Google account. The web page only needs two things from you:
+  1. the Web app URL of the script
+  2. a secret word you choose (so only you can read/write your data)
+You enter both once in the page's Settings dialog; they are stored in your browser only.
+
+Cost: free. Time: about 15 minutes.
+
+
+PART A – CREATE THE GOOGLE SHEET (5 min)
+----------------------------------------
+1. Go to https://sheets.new to create a blank Google Sheet. Name it e.g. "Portfolio tracker".
+2. Create these tabs (rename "Sheet1" and add the others with the + at the bottom).
+   Column headers go in row 1, exactly as written:
+
+   Settings
+     A1: Ticker          B1: VUAA
+     A2: Secret word     B2: <choose a long secret word>
+     A3: Yahoo symbol    B3: VUAA.L
+     A4: Currency        B4: USD
+     (rows 7+ are filled by the script's setup() function – leave empty)
+
+   Transactions
+     A1: Date | B1: Ticker | C1: EUR spent | D1: Shares | E1: Price | F1: Fee (EUR) | G1: Note
+
+   Prices
+     A1: Date | B1: Ticker | C1: Close
+
+   FX
+     A1: Date | B1: USD→EUR
+
+   (The Cash tab is created automatically by setup().)
+
+   Rules: dates are real dates (yyyy-mm-dd). Don't rename tabs or move columns.
+   The page itself can add/edit rows in Transactions and Cash; Prices and FX are filled by the script.
+
+
+PART B – ADD THE SCRIPT (5 min)
+-------------------------------
+1. In the sheet: Extensions → Apps Script. Delete the sample code.
+2. Paste the whole script from the end of this file (between the ===== SCRIPT ===== lines). Save (name the project anything).
+3. Function dropdown (next to "Debug") → choose  setup  → Run.
+   Google asks for permissions: Review permissions → your account → Advanced → "Go to … (unsafe)" → Allow.
+   (That warning is normal for your own scripts.) This creates the Cash tab and the tickers table.
+4. Dropdown → choose  fetchDaily  → Run. The Prices and FX tabs fill with the last year of data.
+5. Edit the tickers table in Settings (rows 8+): one row per thing you own, with its Yahoo Finance symbol
+   (e.g. VUAA.L for London-listed VUAA, IBKR for the US stock, CSPX.L, VWCE.DE …) and its currency.
+   Run fetchDaily again after adding a ticker.
+6. Nightly prices: left menu, clock icon (Triggers) → Add trigger → function fetchDaily,
+   event source Time-driven, Day timer, 6pm–7pm (after European markets close) → Save.
+7. Publish the script: Deploy → New deployment → gear icon → Web app →
+   Execute as: Me · Who has access: Anyone → Deploy → copy the Web app URL (ends with /exec).
+   Later, after any change to the script: Deploy → Manage deployments → pencil → Version: New version → Deploy.
+   (The URL stays the same.)
+
+Test: open  <Web app URL>?secret=<your secret word>  in a private/incognito window.
+You should see JSON starting with {"ok":true,… . "wrong secret" = B2 doesn't match.
+
+
+PART C – CONNECT THE PAGE (1 min)
+---------------------------------
+Open the page → Settings → paste the Web app URL (without ?secret=…) and the secret word → Save and load.
+
+Then: Add cash for every transfer you made to the broker, and Add transaction for every buy
+(date, shares, price in the share's currency, EUR amount and fee from the broker's trade confirmation).
+Shares you received for free (e.g. a broker's stock award) go in as "Gift / free shares".
+
+
+HOW THE NUMBERS ARE COMPUTED
+----------------------------
+  Money put in  = EUR spent + fees of all buys up to that day (sells subtract)
+  Worth         = Σ shares × closing price × that day's ECB USD→EUR rate
+  Difference    = Worth − Money put in
+  Cash          = money sent to the broker − Money put in
+Prices come from Yahoo Finance (unofficial endpoint), rates from the European Central Bank.
+
+
+TROUBLESHOOTING
+---------------
+- Page says the script is an old version → paste the script again, run setup, deploy a New version.
+- Saving takes 5–10 s → normal for Apps Script.
+- fetchDaily errors "Yahoo returned 404" → wrong Yahoo symbol in the tickers table.
+- The browser redirects to script.google.com/macros/u/1/… and fails → you are signed into several
+  Google accounts; test the URL in an incognito window; the page itself is not affected.
+
+
+===== SCRIPT (paste everything below into Apps Script) =====
+/**
+ * Portfolio tracker – Apps Script backend (v4: several tickers + cash).
+ * Lives inside the Google Sheet (Extensions → Apps Script).
+ *
+ *  setup()       – run ONCE by hand: adds the Cash tab and the tickers table in Settings if missing.
+ *  fetchDaily()  – run by a daily time trigger: adds missing closing prices (Yahoo Finance) for every
+ *                  ticker in Settings, and USD→EUR rates (ECB). Backfills (1 year for a new ticker).
+ *  doPost(e)     – web app endpoint: add / edit / delete a transaction or a cash movement.
+ *  doGet(e)      – returns the raw tabs as JSON; the web page does all the maths.
+ *
+ * Sheet tabs: Settings, Transactions, Prices, FX, Cash. (Summary is no longer used.)
+ */
+
+const SHEET = SpreadsheetApp.getActiveSpreadsheet();
+
+/* ----------------------------------------------------------------- helpers */
+
+function ymd(d) {
+  return Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
+}
+
+/** Turn whatever is in a date cell (Date, ISO string, text, serial number) into "yyyy-MM-dd", or null. */
+function toYmd(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return v > 20000 ? ymd(new Date(Math.round((v - 25569) * 86400000))) : null;
+  const str = (v instanceof Date) ? v.toISOString() : String(v);
+  const m = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : ymd(d);
+}
+
+function num(v) { const n = Number(v); return isNaN(n) ? 0 : n; }
+
+function settings() {
+  const ws = SHEET.getSheetByName('Settings');
+  const kv = ws.getRange('A1:B5').getValues();
+  const out = {};
+  kv.forEach(r => { if (r[0]) out[String(r[0]).trim()] = String(r[1]).trim(); });
+  // Tickers table: header in row 7 (Ticker | Yahoo symbol | Currency | Name), rows below.
+  const last = ws.getLastRow();
+  const tickers = [];
+  if (last >= 8) {
+    ws.getRange(8, 1, last - 7, 4).getValues().forEach(r => {
+      if (r[0]) tickers.push({ ticker: String(r[0]).trim().toUpperCase(), yahoo: String(r[1] || r[0]).trim(), currency: String(r[2] || 'USD').trim().toUpperCase(), name: String(r[3] || '').trim() });
+    });
+  }
+  if (!tickers.length) tickers.push({ ticker: out['Ticker'] || 'VUAA', yahoo: out['Yahoo symbol'] || 'VUAA.L', currency: 'USD', name: '' });
+  return { secret: out['Secret word'] || '', tickers };
+}
+
+/* ------------------------------------------------------------------- setup */
+
+/** Run once by hand after pasting this version. Safe to run again. */
+function setup() {
+  const ws = SHEET.getSheetByName('Settings');
+  if (!String(ws.getRange('A7').getValue()).trim()) {
+    ws.getRange('A7:D10').setValues([
+      ['Ticker', 'Yahoo symbol', 'Currency', 'Name'],
+      ['VUAA', 'VUAA.L', 'USD', 'Vanguard S&P 500 ETF'],
+      ['IBKR', 'IBKR', 'USD', 'Interactive Brokers'],
+      ['', '', '', ''],
+    ]);
+    ws.getRange('A7:D7').setFontWeight('bold');
+    ws.getRange('F7').setValue('One row per thing you own. The script fetches prices for every row. Add a row to track a new stock.');
+  }
+  if (!SHEET.getSheetByName('Cash')) {
+    const c = SHEET.insertSheet('Cash');
+    c.getRange('A1:C1').setValues([['Date', 'Amount (EUR)', 'Note']]).setFontWeight('bold');
+    c.getRange('A2:C3').setValues([
+      [new Date('2026-09-01T00:00:00Z'), 200, 'opening balance – adjust the date'],
+      [new Date('2026-10-15T00:00:00Z'), 14000, 'Electronic Fund Transfer'],
+    ]);
+    c.getRange('A2:A200').setNumberFormat('yyyy-mm-dd');
+    c.getRange('E1').setValue('Money you sent to the broker (positive) or took out (negative). The page works out how much is still waiting as cash.');
+    c.setFrozenRows(1);
+  }
+}
+
+/* ------------------------------------------------------------------ prices */
+
+function fetchDaily() {
+  const cfg = settings();
+  const sheet = SHEET.getSheetByName('Prices');
+  const have = existingKeys(sheet);
+  cfg.tickers.forEach(t => addMissingPrices(sheet, have, t));
+  addMissingFx();
+}
+
+/** Set of "yyyy-mm-dd|TICKER" already in Prices. */
+function existingKeys(sheet) {
+  const last = sheet.getLastRow();
+  const set = new Set();
+  if (last < 2) return set;
+  sheet.getRange(2, 1, last - 1, 2).getValues().forEach(r => {
+    const k = toYmd(r[0]);
+    if (k) set.add(k + '|' + String(r[1]).trim().toUpperCase());
+  });
+  return set;
+}
+
+function addMissingPrices(sheet, have, t) {
+  const hasAny = [...have].some(k => k.endsWith('|' + t.ticker));
+  const range = hasAny ? '1mo' : '1y';
+  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(t.yahoo) + '?range=' + range + '&interval=1d';
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, headers: { 'User-Agent': 'Mozilla/5.0' } });
+  if (res.getResponseCode() !== 200) throw new Error('Yahoo returned ' + res.getResponseCode() + ' for ' + t.yahoo);
+  const data = JSON.parse(res.getContentText()).chart.result[0];
+  const stamps = data.timestamp || [];
+  const closes = data.indicators.quote[0].close || [];
+  const rows = [];
+  for (let i = 0; i < stamps.length; i++) {
+    if (closes[i] == null) continue;
+    const key = ymd(new Date(stamps[i] * 1000));
+    if (have.has(key + '|' + t.ticker)) continue;
+    rows.push([new Date(key + 'T00:00:00Z'), t.ticker, Math.round(closes[i] * 100) / 100]);
+    have.add(key + '|' + t.ticker);
+  }
+  if (rows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 3).setValues(rows);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+  }
+}
+
+function addMissingFx() {
+  const sheet = SHEET.getSheetByName('FX');
+  const last = sheet.getLastRow();
+  const have = new Set();
+  if (last >= 2) sheet.getRange(2, 1, last - 1, 1).getValues().forEach(r => { const k = toYmd(r[0]); if (k) have.add(k); });
+  const n = have.size ? 30 : 400;
+  const url = 'https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?format=csvdata&lastNObservations=' + n;
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) throw new Error('ECB returned ' + res.getResponseCode());
+  const lines = res.getContentText().trim().split('\n');
+  const header = lines[0].split(',');
+  const iDate = header.indexOf('TIME_PERIOD');
+  const iVal = header.indexOf('OBS_VALUE');
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',');
+    const key = cols[iDate];
+    const eurUsd = parseFloat(cols[iVal]);
+    if (!key || !eurUsd || have.has(key)) continue;
+    rows.push([new Date(key + 'T00:00:00Z'), Math.round((1 / eurUsd) * 10000) / 10000]);
+    have.add(key);
+  }
+  if (rows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 2).setValues(rows);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).sort({ column: 1, ascending: true });
+  }
+}
+
+/* ----------------------------------------------------------- web app API */
+
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function readRows(name, cols) {
+  const ws = SHEET.getSheetByName(name);
+  if (!ws || ws.getLastRow() < 2) return [];
+  return ws.getRange(2, 1, ws.getLastRow() - 1, cols).getValues();
+}
+
+/**
+ * POST body (JSON): { secret, sheet: "transactions" | "cash", action: "add" | "edit" | "delete", row?, ...fields }
+ *   transactions fields: date, ticker, eur, shares, price, fee, note
+ *   cash fields:         date, amount, note
+ * "row" is the sheet row number (2 = first data row), as returned by doGet.
+ */
+function doPost(e) {
+  const cfg = settings();
+  let body;
+  try { body = JSON.parse(e.postData.contents); } catch (err) { return json({ ok: false, error: 'bad json' }); }
+  if (!cfg.secret || body.secret !== cfg.secret) return json({ ok: false, error: 'wrong secret' });
+
+  const which = body.sheet === 'cash' ? 'Cash' : 'Transactions';
+  const sheet = SHEET.getSheetByName(which);
+  if (!sheet) return json({ ok: false, error: which + ' tab missing – run setup()' });
+  const values = which === 'Cash'
+    ? [new Date(body.date + 'T00:00:00Z'), num(body.amount), String(body.note || '')]
+    : [new Date(body.date + 'T00:00:00Z'), String(body.ticker || '').toUpperCase(), num(body.eur), num(body.shares), num(body.price), num(body.fee), String(body.note || '')];
+
+  if (body.action === 'add') {
+    sheet.appendRow(values);
+    return json({ ok: true, row: sheet.getLastRow() });
+  }
+  const r = Number(body.row);
+  if (!(r >= 2 && r <= sheet.getLastRow())) return json({ ok: false, error: 'bad row' });
+  if (body.action === 'edit') {
+    sheet.getRange(r, 1, 1, values.length).setValues([values]);
+    return json({ ok: true, row: r });
+  }
+  if (body.action === 'delete') {
+    sheet.deleteRow(r);
+    return json({ ok: true });
+  }
+  return json({ ok: false, error: 'unknown action' });
+}
+
+/** GET ?secret=… → raw data for the page. */
+function doGet(e) {
+  const cfg = settings();
+  const secret = e && e.parameter && e.parameter.secret;
+  if (!cfg.secret || secret !== cfg.secret) return json({ ok: false, error: 'wrong secret' });
+
+  const transactions = readRows('Transactions', 7)
+    .map((r, i) => ({ row: i + 2, date: toYmd(r[0]), ticker: String(r[1]).trim().toUpperCase(), eur: num(r[2]), shares: num(r[3]), price: num(r[4]), fee: num(r[5]), note: String(r[6] || '') }))
+    .filter(t => t.date && t.ticker);
+
+  const prices = readRows('Prices', 3)
+    .map(r => ({ date: toYmd(r[0]), ticker: String(r[1]).trim().toUpperCase(), close: num(r[2]) }))
+    .filter(p => p.date && p.ticker && p.close > 0);
+
+  const fx = readRows('FX', 2)
+    .map(r => ({ date: toYmd(r[0]), usdEur: num(r[1]) }))
+    .filter(f => f.date && f.usdEur > 0);
+
+  const cash = readRows('Cash', 3)
+    .map((r, i) => ({ row: i + 2, date: toYmd(r[0]), amount: num(r[1]), note: String(r[2] || '') }))
+    .filter(c => c.date);
+
+  return json({ ok: true, tickers: cfg.tickers, transactions, prices, fx, cash });
+}
+===== END OF SCRIPT =====
