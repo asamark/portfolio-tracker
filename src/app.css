@@ -100,6 +100,15 @@ input, select {
   background: #ffffff;
 }
 input:focus, select:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 10px 36px 10px 12px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23374151' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 
@@ -151,8 +160,10 @@ footer { border-top: 1px solid var(--line); padding-top: 16px; display: flex; fl
   .card .value { font-size: 20px; }
   .card .sub, .card .help { font-size: 11px; line-height: 1.35; }
 
-  .donut-box { width: 160px; height: 160px; flex: 0 0 160px; margin: 0 auto; }
-  .donut-center > div:first-child { font-size: 18px; }
+  .donut-box { width: 120px; height: 120px; flex: 0 0 120px; }
+  .donut-center > div:first-child { font-size: 14px; }
+  .donut-center .faint { font-size: 11px; }
+  .key { flex: 1 1 160px; gap: 8px; font-size: 13px; }
   .chart-box { height: 260px; }
   .legend { gap: 8px 16px; font-size: 12px; }
 

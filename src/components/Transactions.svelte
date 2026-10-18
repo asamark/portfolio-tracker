@@ -31,7 +31,7 @@
         {#each transactions as t (t.row)}
           <tr>
             <td data-label="Date">{longDate(t.date)}</td>
-            <td data-label="What">{t.ticker}{#if t.eur === 0 && t.shares > 0}<span class="help"> · gift</span>{/if}</td>
+            <td data-label="What">{t.ticker}{#if t.eur === 0 && t.shares > 0}<span class="help">&nbsp;· gift</span>{/if}</td>
             <td class="num" data-label="Shares">{Number(t.shares).toFixed(4).replace(/\.?0+$/, '')}</td>
             <td class="num" data-label="Price">{Number(t.price).toFixed(2)}</td>
             <td class="num" data-label="EUR spent">{eurCents(t.eur)}</td>

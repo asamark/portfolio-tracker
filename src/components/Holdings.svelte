@@ -20,7 +20,7 @@
     <tbody>
       {#each rows as h (h.ticker)}
         <tr>
-          <td data-label=""><strong>{h.ticker}</strong>{#if h.name}<span class="help"> · {h.name}</span>{/if}{#if h.gift}<span class="help"> · gift</span>{/if}</td>
+          <td data-label=""><strong>{h.ticker}</strong>{#if h.name}<span class="help">&nbsp;· {h.name}</span>{/if}{#if h.gift}<span class="help">&nbsp;· gift</span>{/if}</td>
           <td class="num" data-label="Shares">{h.shares.toFixed(4).replace(/\.?0+$/, '')}</td>
           <td class="num" data-label="Avg. price paid">{h.gift ? '—' : '€' + h.avgPaidEur.toFixed(2)}</td>
           <td class="num" data-label="Price now">€{h.priceEur.toFixed(2)} <span class="help">({h.price.toFixed(2)} {h.currency})</span></td>
