@@ -19,10 +19,10 @@
     <h2>{editing ? 'Edit cash movement' : 'Add cash movement'}</h2>
     <div class="row">
       <label style="flex-direction: row; align-items: center; gap: 8px; color: var(--text)">
-        <input type="radio" name="ckind" checked={kind === 'in'} onchange={() => (kind = 'in')} style="min-height: 0" /> Sent money to the broker
+        <input type="radio" name="ckind" checked={kind === 'in'} onchange={() => (kind = 'in')} /> Sent money to the broker
       </label>
       <label style="flex-direction: row; align-items: center; gap: 8px; color: var(--text)">
-        <input type="radio" name="ckind" checked={kind === 'out'} onchange={() => (kind = 'out')} style="min-height: 0" /> Took money out
+        <input type="radio" name="ckind" checked={kind === 'out'} onchange={() => (kind = 'out')} /> Took money out
       </label>
     </div>
     <div class="form-grid">

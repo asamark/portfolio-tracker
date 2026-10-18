@@ -38,7 +38,7 @@
     <div class="row">
       {#each [['buy', 'Buy'], ['sell', 'Sell'], ['gift', 'Gift / free shares']] as [v, label]}
         <label style="flex-direction: row; align-items: center; gap: 8px; color: var(--text)">
-          <input type="radio" name="kind" value={v} checked={kind === v} onchange={() => (kind = v)} style="min-height: 0" /> {label}
+          <input type="radio" name="kind" value={v} checked={kind === v} onchange={() => (kind = v)} /> {label}
         </label>
       {/each}
     </div>
