@@ -87,15 +87,15 @@
 </script>
 
 <div class="page">
-  <div class="row between">
+  <div class="header">
     <div>
       <h1>My Investments</h1>
-      <div class="muted">
-        {#if lastPriceDate}prices up to {longDate(lastPriceDate)}{:else}no data yet{/if}
-        {#if loading}<span class="faint"> · updating…</span>{:else if data?.fetchedAt}<span class="faint"> · loaded {new Date(data.fetchedAt).toLocaleString()}</span>{/if}
+      <div class="help">
+        {#if lastPriceDate}Prices up to {longDate(lastPriceDate)}{:else}No data yet{/if}
+        {#if loading} · updating…{/if}
       </div>
     </div>
-    <div class="row">
+    <div class="actions-bar">
       <button onclick={() => (showSettings = true)}>Settings</button>
       <button onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
       <button class="primary" onclick={() => { formError = ''; form = { kind: 'tx', editing: null }; }} disabled={!settings.url}>Add transaction</button>
@@ -113,7 +113,7 @@
     </section>
 
     <section class="section">
-      <h2>What my {eur(head.cash + head.worth)} at the broker is made of</h2>
+      <h2>Where my money is</h2>
       <Donut {head} />
     </section>
 

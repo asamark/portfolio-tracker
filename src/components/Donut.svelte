@@ -34,23 +34,23 @@
   onMount(() => () => chart?.destroy());
 </script>
 
-<div class="row" style="gap: 40px; align-items: center">
-  <div class="donut-box" style="flex: 0 0 200px">
+<div class="row" style="gap: 32px; align-items: center">
+  <div class="donut-box">
     <canvas bind:this={canvas}></canvas>
     <div class="donut-center">
       <div style="font-size: 22px; font-weight: 600">{eur(total)}</div>
       <div class="faint">at the broker</div>
     </div>
   </div>
-  <div style="display: flex; flex-direction: column; gap: 14px; flex: 1 1 320px; min-width: 0">
+  <div class="key">
     {#if cash > 0}
-      <span class="row"><span class="swatch" style="background: #f3f4f6; border: 1px solid #e5e7eb"></span><strong>{eur(cash)}</strong> cash, waiting to be invested <span class="faint">({pc(cash)})</span></span>
+      <div class="key-item"><span class="swatch" style="background: #f3f4f6; border: 1px solid #e5e7eb"></span><div><strong>{eur(cash)}</strong> cash, waiting to be invested <span class="help">({pc(cash)})</span></div></div>
     {/if}
-    <span class="row"><span class="swatch" style="background: #d1d5db"></span><strong>{eur(ownInShares)}</strong> my own money in shares <span class="faint">({pc(ownInShares)})</span></span>
+    <div class="key-item"><span class="swatch" style="background: #d1d5db"></span><div><strong>{eur(ownInShares)}</strong> my own money in shares <span class="help">({pc(ownInShares)})</span></div></div>
     {#if head.diff >= 0}
-      <span class="row"><span class="swatch" style="background: #15803d"></span><strong class="green">{eur(earned)}</strong> earned <span class="faint">({pc(earned)})</span></span>
+      <div class="key-item"><span class="swatch" style="background: #15803d"></span><div><strong class="green">{eur(earned)}</strong> earned <span class="help">({pc(earned)})</span></div></div>
     {:else}
-      <span class="row"><span class="swatch" style="background: #b91c1c"></span><strong class="red">{eur(lost)}</strong> lost so far <span class="help">(not real unless I sell)</span></span>
+      <div class="key-item"><span class="swatch" style="background: #b91c1c"></span><div><strong class="red">{eur(lost)}</strong> lost so far <span class="help">(not real unless I sell)</span></div></div>
     {/if}
   </div>
 </div>

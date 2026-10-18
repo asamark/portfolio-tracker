@@ -53,7 +53,7 @@
   <div class="notice">No cash movements yet. Use "Add cash" when you transfer money to IBKR.</div>
 {:else}
   <div class="scroll-x">
-    <table class="stack" style="min-width: 520px">
+    <table class="stack">
       <thead>
         <tr><th>Date</th><th class="num">Amount</th><th>Note</th><th></th></tr>
       </thead>

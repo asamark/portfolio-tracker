@@ -116,7 +116,7 @@ input:focus, select:focus { outline: 2px solid var(--blue); outline-offset: 1px;
 .notice.error { border-color: #fecaca; background: #fef2f2; color: var(--red); }
 
 .chart-box { position: relative; width: 100%; height: 340px; }
-.donut-box { width: 200px; height: 200px; position: relative; }
+.donut-box { width: 200px; height: 200px; flex: 0 0 200px; position: relative; }
 .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
 
 footer { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 4px; }
@@ -124,14 +124,51 @@ footer { border-top: 1px solid var(--line); padding-top: 16px; display: flex; fl
 /* Short help text next to a number. */
 .help { font-size: 12px; color: var(--faint); }
 
-/* Stacked rows on narrow screens: each cell shows its header on the left. */
+/* Header: title left, actions right; on phones the actions become a 2-column grid below the title. */
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.actions-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Legend / key list next to the donut: swatch + one wrapping text block. */
+.key { display: flex; flex-direction: column; gap: 12px; flex: 1 1 260px; min-width: 0; }
+.key-item { display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
+.key-item .swatch { flex: 0 0 14px; margin-top: 4px; }
+
+/* ---------- Phones ---------- */
 @media (max-width: 720px) {
-  table.stack { min-width: 0; }
+  .page { padding: 20px 16px 48px; gap: 28px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; }
+  body { font-size: 14px; }
+
+  .header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .actions-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .actions-bar .primary { grid-column: 1 / -1; }
+  button { padding: 10px 12px; }
+
+  .cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card { padding: 12px 14px; gap: 2px; }
+  .card .label { font-size: 12px; }
+  .card .value { font-size: 20px; }
+  .card .sub, .card .help { font-size: 11px; line-height: 1.35; }
+
+  .donut-box { width: 160px; height: 160px; flex: 0 0 160px; margin: 0 auto; }
+  .donut-center > div:first-child { font-size: 18px; }
+  .chart-box { height: 260px; }
+  .legend { gap: 8px 16px; font-size: 12px; }
+
+  /* Stacked rows: label floats left, the whole value sits right as one wrapping block. */
+  .scroll-x { overflow-x: visible; }
+  table.stack { min-width: 0 !important; width: 100%; }
   table.stack thead { display: none; }
   table.stack tr { display: block; border-bottom: 1px solid var(--line); padding: 8px 0; }
-  table.stack td { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border: none; text-align: right; }
-  table.stack td::before { content: attr(data-label); color: var(--faint); font-weight: 500; text-align: left; }
+  table.stack td { display: block; padding: 3px 0; border: none; text-align: right; overflow: hidden; }
+  table.stack td::before { content: attr(data-label); float: left; color: var(--faint); font-weight: 500; padding-right: 12px; }
   table.stack td.divider { border-right: none; }
-  table.stack td.actions { justify-content: flex-end; }
   table.stack td.actions::before { content: none; }
+  table.stack td.actions { padding-top: 6px; }
+  table.stack td:first-child { text-align: left; }
+  table.stack td[data-label=""]::before { content: none; }
+
+  .modal { padding: 18px 16px; max-height: 92vh; overflow-y: auto; }
+  .form-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 }
