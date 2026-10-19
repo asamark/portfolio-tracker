@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 
 /** Serves public/setup-guide.txt with the current sheet/Code.gs pasted in, so the guide never goes stale. */
 function setupGuide() {
-  const build = () => readFileSync('public/setup-guide.txt', 'utf8').replace(/===== SCRIPT[\s\S]*?===== END OF SCRIPT =====/,
+  const build = () => readFileSync('public/setup-guide.txt', 'utf8').replace(/^===== SCRIPT[^\n]*=====\n[\s\S]*?^===== END OF SCRIPT =====/m,
     '===== SCRIPT (paste everything below into Apps Script) =====\n' + readFileSync('sheet/Code.gs', 'utf8').trim() + '\n===== END OF SCRIPT =====');
   return {
     name: 'setup-guide',

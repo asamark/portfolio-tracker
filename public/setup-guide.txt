@@ -3,6 +3,7 @@ PORTFOLIO TRACKER – SETUP GUIDE
 
 You can read this yourself or paste it into an AI assistant (ChatGPT, Claude, Gemini…) and say:
 "Walk me through this step by step." Everything the assistant needs is in this file.
+Already investing? Part D explains how to turn your broker statement into the entries for the form.
 
 WHAT THIS IS
 ------------
@@ -77,6 +78,57 @@ Open the page → Settings → paste the Web app URL (without ?secret=…) and t
 Then: Add cash for every transfer you made to the broker, and Add transaction for every buy
 (date, shares, price in the share's currency, EUR amount and fee from the broker's trade confirmation).
 Shares you received for free (e.g. a broker's stock award) go in as "Gift / free shares".
+
+
+PART D – ENTERING YOUR HISTORY (for people who already have transactions)
+-------------------------------------------------------------------------
+If you are using an AI assistant: give it your broker's activity statement (CSV) covering the whole
+period since you started investing, and ask it to "list every row I need to enter in the portfolio
+tracker form, using the rules in Part D". It should return one line per entry, like:
+
+   Add cash        2026-10-15   +14000.00   "bank transfer"
+   Add transaction 2026-09-08   BUY  VUAA   1 share   price 148.82 USD   EUR spent 128.03   fee 3.44
+   Add transaction 2026-10-16   GIFT IBKR   0.6171 shares   price 86.13 USD
+
+Where to find the statement at Interactive Brokers (other brokers have an equivalent export):
+   Performance & Reports → Statements → Activity → period "Year to date" (or custom, from your first
+   deposit) → format CSV → Run. For trades of today that are not in the statement yet:
+   Trade → Orders & Trades → Trades tab (shows the fee under each amount).
+
+Rules for turning a statement into form entries:
+
+1. CASH MOVEMENTS → "Add cash", one per line in the "Deposits & Withdrawals" section
+   (date, amount; withdrawals negative). Do NOT enter purchases here.
+
+2. PURCHASES AND SALES → "Add transaction", one per line in the "Trades" section with
+   Asset Category = Stocks:
+     Date        = the trade date
+     What        = the symbol (VUAA, IBKR …); it must exist in the Settings tickers table
+     Shares      = Quantity (negative in the statement = a sale → choose "Sell", enter positive)
+     Price       = T. Price, in the share's own currency (USD for VUAA)
+     EUR spent   = what left your EUR balance for the shares, WITHOUT the fee
+     Fee (EUR)   = the commission in EUR
+   For a share quoted in a foreign currency the statement shows a "Total in EUR" line under the
+   trades: Proceeds (negative) = EUR spent, Comm/Fee = the fee. Example:
+       Trades,Total,,Stocks,EUR,,,,,,-128.0328224,-3.44128,…  → EUR spent 128.03, fee 3.44
+   On the Trades screen instead, read the EUR.USD "Sold" rows made at the same minute as the buy:
+   the small one equals the fee (e.g. Sold 3.56 @ 1.12092 → fee €3.56), the others add up to
+   EUR spent (e.g. 1,595 + 0.21 = €1,595.21). The USD fee ("Fees: 4.0") is also shown under the amount.
+   Never use the "Cost Basis" or "Avg Price" from the Positions screen: those already include fees.
+
+3. FREE SHARES (IBKR "Stock Award Grant", employer shares, promotions) → "Add transaction" with
+   kind "Gift / free shares": date, symbol, quantity, and the price on that day from the
+   "Grant Activity" section. No EUR amount: they count as €0 put in.
+   Several small grants of the same stock can be combined into one line dated at the last grant.
+
+4. IGNORE: the EUR.USD / Forex rows themselves (they are only currency conversions), dividends
+   that are reinvested inside an accumulating ETF (VUAA reinvests), interest, and rows with
+   Asset Category = Forex. Cash dividends paid out would be an "Add cash" with a note, if you want
+   them counted as money coming back.
+
+5. CHECK when done: the page's "Cash at the broker" should equal the broker's cash balance within
+   a euro or two (tiny differences come from currency rounding), and "Shares" per holding should
+   match the broker's Positions screen exactly.
 
 
 HOW THE NUMBERS ARE COMPUTED
