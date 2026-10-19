@@ -39,6 +39,10 @@ export function buildSummary(data, tickerFilter = null) {
   const firstDate = deposits.length && deposits[0].date < tx[0].date ? deposits[0].date : dayBefore(tx[0].date);
   const priceDates = [...new Set((data.prices || []).filter((p) => tickers.includes(p.ticker) && p.date >= firstDate).map((p) => p.date))];
   if (!priceDates.includes(firstDate)) priceDates.push(firstDate);
+  // A purchase or deposit newer than the last price (e.g. made today, before tonight's price fetch)
+  // still gets a row, valued at the last known price, so the cards move as soon as it is entered.
+  const lastEvent = [...tx.map((t) => t.date), ...deposits.map((d) => d.date)].sort().at(-1);
+  if (lastEvent && !priceDates.includes(lastEvent) && lastEvent > priceDates.sort().at(-1)) priceDates.push(lastEvent);
   const dates = priceDates.sort();
 
   const rows = [];
