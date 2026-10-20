@@ -229,6 +229,6 @@ select.pill { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; border-
 
   .form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
   .form-grid > .wide { grid-column: 1 / -1; }
-  .modal-backdrop { padding: 12px; align-items: flex-end; }
+  .modal-backdrop { padding: 12px; align-items: center; }
   .modal { padding: 18px 16px; border-radius: 12px; max-height: calc(100dvh - 24px); }
 }
