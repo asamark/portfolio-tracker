@@ -25,12 +25,6 @@
         <span>{qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}{#if h.gifted > 0}&nbsp;· {qty(h.gifted)} gifted{/if}</span>
         <span>{#if h.bought > 0}Avg. €{h.avgPaidEur.toFixed(2)} / share&nbsp;·&nbsp;{/if}now €{h.priceEur.toFixed(2)}</span>
       </div>
-      {#if h.gifted > 0}
-        <div class="help holding-note">
-          {#if h.bought > 0}{qty(h.gifted)} of these shares were a gift (€0 invested), so most of this return is the gift's value, not investment performance.
-          {:else}These shares were a gift (€0 invested), so the whole value shows as return — it is not investment performance.{/if}
-        </div>
-      {/if}
     </div>
   {/each}
 </div>
