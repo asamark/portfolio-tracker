@@ -127,9 +127,10 @@ footer { padding-top: 0; display: flex; flex-direction: column; gap: 4px; }
 .hero-main { display: flex; flex-direction: column; gap: 6px; }
 .hero-value { font-size: 56px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
 .hero-context { font-size: 15px; color: var(--muted); }
-.hero-side { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
-.hero-pair { display: flex; align-items: baseline; gap: 10px; font-size: 15px; flex-wrap: wrap; }
-.hero-pair strong { font-size: 18px; }
+.hero-side { display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
+.hero-pair { display: flex; align-items: baseline; gap: 12px; font-size: 17px; flex-wrap: wrap; }
+.hero-pair strong { font-size: 26px; }
+.hero-side .help { font-size: 14px; }
 .hero-pair .label { color: var(--muted); }
 .hero-pair .arrow { color: #9ca3af; }
 .label { font-size: 14px; color: var(--muted); }
@@ -204,7 +205,9 @@ select.pill { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; border-
   .hero { flex-direction: column; align-items: stretch; gap: 16px; }
   .hero-value { font-size: 44px; }
   .hero-context { font-size: 14px; }
-  .hero-pair strong { font-size: 16px; }
+  .hero-pair { font-size: 15px; gap: 10px; }
+  .hero-pair strong { font-size: 20px; }
+  .hero-side .help { font-size: 12px; }
   .holdings { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat { padding: 12px 14px; }
