@@ -91,7 +91,7 @@
 <div class="page">
   <div class="header">
     <div>
-      <h1>My Investments</h1>
+      <h1>My Simple Portfolio</h1>
       <div class="help">
         {#if lastPriceDate}Prices up to {longDate(lastPriceDate)}{:else}No data yet{/if}
         {#if loading} · updating…{/if}
