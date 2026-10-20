@@ -22,8 +22,8 @@
         <div class="right"><div class="label">Invested</div><div class="fact">{money(h.putIn)}</div></div>
       </div>
       <div class="holding-foot">
-        <span>{qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}{#if h.gifted > 0} · {qty(h.gifted)} gifted{/if}</span>
-        <span>{#if h.bought > 0}Avg. €{h.avgPaidEur.toFixed(2)} / share · {/if}now €{h.priceEur.toFixed(2)}</span>
+        <span>{qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}{#if h.gifted > 0}&nbsp;· {qty(h.gifted)} gifted{/if}</span>
+        <span>{#if h.bought > 0}Avg. €{h.avgPaidEur.toFixed(2)} / share&nbsp;·&nbsp;{/if}now €{h.priceEur.toFixed(2)}</span>
       </div>
       {#if h.gifted > 0}
         <div class="help holding-note">
