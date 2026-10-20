@@ -64,6 +64,14 @@
     return () => window.removeEventListener('pagehide', save);
   });
 
+  onMount(() => {
+    const close = () => { menuOpen = false; };
+    const onKey = (e) => { if (e.key === 'Escape') menuOpen = false; };
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('click', close); document.removeEventListener('keydown', onKey); };
+  });
+
   function onSaveSettings(s) { settings = s; saveSettings(s); showSettings = false; refresh(); }
 
   /** Write to the sheet, apply the change locally right away, then re-sync from the sheet in the background. */
@@ -100,18 +108,20 @@
     <div class="actions-bar">
       <button class="link quiet" onclick={() => (showSettings = true)}>Settings</button>
       <button class="link quiet" onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
-      <button class="more" aria-label="More actions" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1.8" fill="currentColor"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/><circle cx="16" cy="10" r="1.8" fill="currentColor"/></svg>
-      </button>
+      <div class="more-wrap">
+        <button class="more" aria-label="More actions" aria-haspopup="menu" aria-expanded={menuOpen} onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1.8" fill="currentColor"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/><circle cx="16" cy="10" r="1.8" fill="currentColor"/></svg>
+        </button>
+        {#if menuOpen}
+          <div class="menu" role="menu">
+            <button role="menuitem" onclick={() => { menuOpen = false; showSettings = true; }}>Settings</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
+          </div>
+        {/if}
+      </div>
       <button class="primary" onclick={() => { formError = ''; form = { kind: 'tx', editing: null }; }} disabled={!settings.url}>Add transaction</button>
     </div>
   </div>
-  {#if menuOpen}
-    <div class="menu" role="presentation" onclick={() => (menuOpen = false)}>
-      <button onclick={() => (showSettings = true)}>Settings</button>
-      <button onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
-    </div>
-  {/if}
 
   {#if error}<div class="notice error">{error}</div>{/if}
 
