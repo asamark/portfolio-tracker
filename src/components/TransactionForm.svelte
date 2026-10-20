@@ -44,8 +44,8 @@
     </div>
 
     <div class="form-grid">
-      <label>Date <input type="date" bind:value={date} required /></label>
-      <label>What
+      <label class="wide">Date <input type="date" bind:value={date} required /></label>
+      <label class="wide">What
         <select bind:value={tick}>
           {#each tickers as t}<option value={t.ticker}>{t.ticker}{t.name ? ' – ' + t.name : ''}</option>{/each}
         </select>

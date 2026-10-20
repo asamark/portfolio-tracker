@@ -77,6 +77,9 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
 input[type="radio"], input[type="checkbox"] { width: auto; min-height: 0; }
+/* iOS gives date inputs an intrinsic width and centres the text; make them behave like text fields. */
+input[type="date"] { -webkit-appearance: none; appearance: none; display: block; width: 100%; max-width: 100%; min-width: 0; text-align: left; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 input, select {
   font: inherit;
   width: 100%;
@@ -215,6 +218,7 @@ select.pill { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; border-
   table.stack td[data-label=""]::before { content: none; }
 
   .form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .form-grid > .wide { grid-column: 1 / -1; }
   .modal-backdrop { padding: 12px; align-items: flex-end; }
   .modal { padding: 18px 16px; border-radius: 12px; max-height: calc(100dvh - 24px); }
 }
