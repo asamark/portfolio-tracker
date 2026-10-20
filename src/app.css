@@ -132,7 +132,7 @@ footer { padding-top: 0; display: flex; flex-direction: column; gap: 4px; }
 
 /* Return pill: green up, red down, grey flat. */
 .pill-return { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: 15px; font-weight: 600; white-space: nowrap; }
-.summary .pill-return { font-size: 22px; padding: 6px 14px; border-radius: 10px; }
+.summary .pill-return { font-size: 17px; padding: 5px 12px; border-radius: 9px; }
 .pill-up { background: #ecfdf5; color: #15803d; }
 .pill-down { background: #fef2f2; color: #b91c1c; }
 .pill-flat { background: var(--line-soft); color: var(--muted); }
@@ -210,7 +210,7 @@ select.pill { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; border-
 
   .summary { padding: 16px 18px; }
   .summary-value { font-size: 32px; }
-  .summary .pill-return { font-size: 18px; padding: 5px 12px; }
+  .summary .pill-return { font-size: 15px; padding: 4px 10px; }
   .summary-facts { gap: 10px; }
   .fact { font-size: 16px; }
   .label { font-size: 13px; }
