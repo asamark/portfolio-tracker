@@ -6,8 +6,7 @@
   } from './lib/api.js';
   import { buildSummary, headline, holdings, pickBuckets, withPeriodChange, statistics } from './lib/calc.js';
   import { longDate, eur } from './lib/format.js';
-  import Cards from './components/Cards.svelte';
-  import Donut from './components/Donut.svelte';
+  import Hero from './components/Hero.svelte';
   import Holdings from './components/Holdings.svelte';
   import GrowthChart from './components/GrowthChart.svelte';
   import PeriodTable from './components/PeriodTable.svelte';
@@ -29,6 +28,7 @@
   let busy = $state(false);
   let formError = $state('');
   let chartTicker = $state('');     // '' = everything
+  let menuOpen = $state(false);
 
   const valid = $derived(data && Array.isArray(data.prices));
   const tickers = $derived(valid ? data.tickers : []);
@@ -36,7 +36,7 @@
   const cash = $derived(valid ? data.cash.slice().sort((a, b) => a.date.localeCompare(b.date)) : []);
   const summary = $derived(valid ? buildSummary(data) : []);
   const chartSummary = $derived(chartTicker ? buildSummary(data, chartTicker) : summary);
-  const head = $derived(headline(summary));
+  const head = $derived(headline(summary, transactions));
   const held = $derived(valid ? holdings(data, summary) : []);
   const buckets = $derived(pickBuckets(chartSummary));
   const periodRows = $derived(withPeriodChange(buckets.rows));
@@ -93,47 +93,49 @@
     <div>
       <h1>My Simple Portfolio</h1>
       <div class="help">
-        {#if lastPriceDate}Prices up to {longDate(lastPriceDate)}{:else}No data yet{/if}
+        {#if lastPriceDate}Prices from {longDate(lastPriceDate)}{:else}No data yet{/if}
         {#if loading} · updating…{/if}
       </div>
     </div>
     <div class="actions-bar">
-      <button onclick={() => (showSettings = true)}>Settings</button>
-      <button onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
+      <button class="link quiet" onclick={() => (showSettings = true)}>Settings</button>
+      <button class="link quiet" onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
+      <button class="more" aria-label="More actions" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1.8" fill="currentColor"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/><circle cx="16" cy="10" r="1.8" fill="currentColor"/></svg>
+      </button>
       <button class="primary" onclick={() => { formError = ''; form = { kind: 'tx', editing: null }; }} disabled={!settings.url}>Add transaction</button>
     </div>
   </div>
+  {#if menuOpen}
+    <div class="menu" role="presentation" onclick={() => (menuOpen = false)}>
+      <button onclick={() => (showSettings = true)}>Settings</button>
+      <button onclick={() => { formError = ''; form = { kind: 'cash', editing: null }; }} disabled={!settings.url}>Add cash</button>
+    </div>
+  {/if}
 
   {#if error}<div class="notice error">{error}</div>{/if}
 
   {#if head}
-    <Cards {head} {lastSeen} />
-
-    <section class="section">
-      <h2>What I own</h2>
-      <Holdings rows={held} />
-    </section>
-
-    <section class="section">
-      <h2>Where my money is</h2>
-      <Donut {head} />
-    </section>
+    <Hero {head} {lastSeen} />
+    <button class="primary hero-actions" onclick={() => { formError = ''; form = { kind: 'tx', editing: null }; }} disabled={!settings.url}>Add transaction</button>
 
     <section class="section">
       <div class="row between">
-        <h2>{buckets.unit === 'month' ? 'Month by month' : 'Year by year'}: money put in vs. what it was worth</h2>
+        <h2>Money put in vs. what it's worth</h2>
         {#if tickers.length > 1}
-          <label style="flex-direction: row; align-items: center; gap: 8px">Show
-            <select bind:value={chartTicker}>
-              <option value="">everything</option>
-              {#each tickers as t}<option value={t.ticker}>{t.ticker}</option>{/each}
-            </select>
-          </label>
+          <select class="pill" bind:value={chartTicker} aria-label="Which holding to show">
+            <option value="">All holdings</option>
+            {#each tickers as t}<option value={t.ticker}>{t.ticker}</option>{/each}
+          </select>
         {/if}
       </div>
       <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
     </section>
 
+    <section class="section">
+      <h2>What I own</h2>
+      <Holdings rows={held} />
+    </section>
   {:else if valid && !loading}
     <div class="notice">
       {#if !data.prices.length}The sheet has no price rows yet. Run <code>fetchDaily</code> once in Apps Script, then press Refresh.

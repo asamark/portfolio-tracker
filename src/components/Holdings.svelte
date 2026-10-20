@@ -1,35 +1,32 @@
 <script>
-  import { eurCents, signed, colorClass } from '../lib/format.js';
+  import { eur, eurCents, colorClass } from '../lib/format.js';
   let { rows } = $props();
   const signedCents = (n) => (n >= 0 ? '+' : '−') + eurCents(Math.abs(n));
+  const qty = (n) => n.toFixed(4).replace(/\.?0+$/, '');
+  const money = (n) => (Math.abs(n) >= 1000 ? eur(n) : eurCents(n));
 </script>
 
-<div class="scroll-x">
-  <table class="stack">
-    <thead>
-      <tr>
-        <th>What I own</th>
-        <th class="num">Shares</th>
-        <th class="num">Avg. price paid</th>
-        <th class="num">Price now</th>
-        <th class="num divider">Put in</th>
-        <th class="num">Worth</th>
-        <th class="num">Difference</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each rows as h (h.ticker)}
-        <tr>
-          <td data-label=""><strong>{h.ticker}</strong>{#if h.name}<span class="help">&nbsp;· {h.name}</span>{/if}{#if h.gift}<span class="help">&nbsp;· gift</span>{/if}</td>
-          <td class="num" data-label="Shares">{h.shares.toFixed(4).replace(/\.?0+$/, '')}</td>
-          <td class="num" data-label="Avg. price paid">{h.gift ? '—' : '€' + h.avgPaidEur.toFixed(2)}</td>
-          <td class="num" data-label="Price now">€{h.priceEur.toFixed(2)} <span class="help">({h.price.toFixed(2)} {h.currency})</span></td>
-          <td class="num divider" data-label="Put in">{eurCents(h.putIn)}</td>
-          <td class="num" data-label="Worth">{eurCents(h.worth)}</td>
-          <td class="num strong {colorClass(h.diff)}" data-label="Difference">{signedCents(h.diff)}</td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+<div class="holdings">
+  {#each rows as h (h.ticker)}
+    <div class="holding">
+      <div class="holding-head">
+        <div><strong>{h.ticker}</strong>{#if h.name}<span class="help">&nbsp;· {h.name}</span>{/if}{#if h.gifted > 0}<span class="help">&nbsp;· {h.bought > 0 ? 'part gift' : 'gift'}</span>{/if}</div>
+        <div class="strong {colorClass(h.diff)}">{signedCents(h.diff)}</div>
+      </div>
+      <div class="hero-pair">
+        <span class="label">Put in</span><strong>{money(h.putIn)}</strong>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="label">Worth</span><strong>{money(h.worth)}</strong>
+      </div>
+      <div class="help">
+        {qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}
+        {#if h.gifted > 0 && h.bought > 0} · {qty(h.gifted)} gifted, {qty(h.bought)} bought at €{h.avgPaidEur.toFixed(2)}
+        {:else if h.bought > 0} · paid €{h.avgPaidEur.toFixed(2)} avg{/if}
+        · now €{h.priceEur.toFixed(2)} ({h.price.toFixed(2)} {h.currency})
+      </div>
+    </div>
+  {/each}
 </div>
-<div class="help">Avg. price paid includes fees. Gifted shares: €0 put in, so all value counts as gain.</div>
+{#if rows.some((h) => h.gifted > 0)}
+  <div class="help">Gifted shares count as €0 put in, so their whole value is earning. Averages include fees.</div>
+{/if}

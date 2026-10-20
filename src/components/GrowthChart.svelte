@@ -90,11 +90,5 @@
   onMount(() => () => chart?.destroy());
 </script>
 
-<div class="legend">
-  <span><span class="swatch" style="background: #d1d5db"></span>Money put in (= bank account)</span>
-  <span><span class="swatch" style="background: #15803d"></span>Gain on top</span>
-  <span><span class="swatch" style="background: #b91c1c"></span>Loss</span>
-  <span><span class="swatch line" style="background: #2563eb"></span>Total portfolio value, every day</span>
-</div>
 <div class="chart-box"><canvas bind:this={canvas}></canvas></div>
-<div class="help">Columns: money put in by the end of each {unit}, with gain (green) on top or loss (red) cut in. Line: value every trading day.</div>
+<div class="help">Grey: money put in by the end of each {unit}. Green/red on top: gain or loss. Blue line: value every day.</div>

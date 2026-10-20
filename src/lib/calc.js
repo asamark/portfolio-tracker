@@ -71,11 +71,12 @@ export function buildSummary(data, tickerFilter = null) {
   return rows;
 }
 
-/** Latest row = today's numbers. */
-export function headline(summary) {
+/** Latest row = today's numbers, plus the date of the first purchase. */
+export function headline(summary, transactions = []) {
   const last = summary[summary.length - 1];
   if (!last) return null;
-  return { ...last, pctGain: last.putIn > 0 ? last.diff / last.putIn : 0 };
+  const first = transactions.map((t) => t.date).sort()[0] || null;
+  return { ...last, pctGain: last.putIn > 0 ? last.diff / last.putIn : 0, since: first };
 }
 
 /** Per-ticker view for the holdings table. */
@@ -88,13 +89,17 @@ export function holdings(data, summary) {
     .map(([T, h]) => {
       const tx = data.transactions.filter((t) => t.ticker === T);
       const putIn = tx.reduce((s, t) => s + t.eur + (t.fee || 0), 0);
-      const bought = tx.filter((t) => t.shares > 0).reduce((s, t) => s + t.shares, 0);
-      const paidForBought = tx.filter((t) => t.shares > 0).reduce((s, t) => s + t.eur + (t.fee || 0), 0);
+      const gifted = tx.filter((t) => t.shares > 0 && t.eur === 0).reduce((s, t) => s + t.shares, 0);
+      const paidTx = tx.filter((t) => t.shares > 0 && t.eur !== 0);
+      const bought = paidTx.reduce((s, t) => s + t.shares, 0);
+      const paidForBought = paidTx.reduce((s, t) => s + t.eur + (t.fee || 0), 0);
       return {
         ticker: T,
         name: names[T]?.name || '',
         currency: names[T]?.currency || 'USD',
         shares: h.shares,
+        gifted,
+        bought,
         avgPaidEur: bought > 0 ? paidForBought / bought : 0,
         priceEur: h.priceEur,
         price: h.price,
