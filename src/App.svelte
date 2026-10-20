@@ -12,10 +12,12 @@
   import GrowthChart from './components/GrowthChart.svelte';
   import PeriodTable from './components/PeriodTable.svelte';
   import Transactions from './components/Transactions.svelte';
+  import CashList from './components/CashList.svelte';
   import TransactionForm from './components/TransactionForm.svelte';
   import CashForm from './components/CashForm.svelte';
   import Settings from './components/Settings.svelte';
   import Statistics from './components/Statistics.svelte';
+  import Collapsible from './components/Collapsible.svelte';
 
   let settings = $state(loadSettings());
   let data = $state(loadCache());
@@ -132,17 +134,16 @@
       <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
     </section>
 
-    {#if stats}
-      <section class="section">
-        <h2>Statistics</h2>
-        <Statistics {stats} />
-      </section>
-    {/if}
-
-    <section class="section">
-      <h2>{buckets.unit === 'month' ? 'Month by month' : 'Year by year'}{chartTicker ? ' – ' + chartTicker : ''}</h2>
-      <PeriodTable rows={periodRows} unit={buckets.unit} />
-    </section>
+    <div class="folds">
+      {#if stats}
+        <Collapsible id="stats" title="Statistics">
+          <Statistics {stats} />
+        </Collapsible>
+      {/if}
+      <Collapsible id="period" title={(buckets.unit === 'month' ? 'Month by month' : 'Year by year') + (chartTicker ? ' – ' + chartTicker : '')}>
+        <PeriodTable rows={periodRows} unit={buckets.unit} />
+      </Collapsible>
+    </div>
   {:else if valid && !loading}
     <div class="notice">
       {#if !data.prices.length}The sheet has no price rows yet. Run <code>fetchDaily</code> once in Apps Script, then press Refresh.
@@ -150,12 +151,14 @@
     </div>
   {/if}
 
-  <section class="section">
-    <h2>All my purchases</h2>
-    <Transactions {transactions} {cash} {busy}
-      onEdit={(t) => { formError = ''; form = { kind: 'tx', editing: t }; }} onDelete={removeTx}
-      onEditCash={(c) => { formError = ''; form = { kind: 'cash', editing: c }; }} onDeleteCash={removeCash} />
-  </section>
+  <div class="folds">
+    <Collapsible id="purchases" title="All my purchases">
+      <Transactions {transactions} {busy} onEdit={(t) => { formError = ''; form = { kind: 'tx', editing: t }; }} onDelete={removeTx} />
+    </Collapsible>
+    <Collapsible id="cash" title="Money sent to the broker">
+      <CashList {cash} {busy} onEdit={(c) => { formError = ''; form = { kind: 'cash', editing: c }; }} onDelete={removeCash} />
+    </Collapsible>
+  </div>
 
   <footer class="faint">
     <div>Prices are daily closes converted to euros at that day's ECB rate, so numbers can differ slightly from IBKR's live screen. Earnings are not real until shares are sold.</div>
