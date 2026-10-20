@@ -122,19 +122,19 @@ select {
 
 footer { padding-top: 0; display: flex; flex-direction: column; gap: 4px; }
 
-/* Hero: the one number first, supporting numbers beside it. */
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-.hero-main, .hero-side { border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; justify-content: center; }
-.hero-main { display: flex; flex-direction: column; gap: 6px; }
-.hero-value { font-size: 56px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
-.hero-context { font-size: 15px; color: var(--muted); }
-.hero-side { display: flex; flex-direction: column; gap: 8px; }
-.hero-pair { display: flex; align-items: baseline; gap: 12px; font-size: 17px; flex-wrap: wrap; }
-.hero-pair strong { font-size: 26px; }
-.hero-side .help { font-size: 14px; }
-.hero-pair .label { color: var(--muted); }
-.hero-pair .arrow { color: #9ca3af; }
+/* Summary card: total value as the hero, return as a pill, three facts below. */
+.summary { border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; }
+.summary-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.summary-value { font-size: 40px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.summary-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--line); margin-top: 8px; padding-top: 14px; }
+.fact { font-size: 18px; font-weight: 500; margin-top: 2px; }
 .label { font-size: 14px; color: var(--muted); }
+
+/* Return pill: green up, red down, grey flat. */
+.pill-return { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: 15px; font-weight: 600; white-space: nowrap; }
+.pill-up { background: #ecfdf5; color: #15803d; }
+.pill-down { background: #fef2f2; color: #b91c1c; }
+.pill-flat { background: var(--line-soft); color: var(--muted); }
 
 /* Statistics tiles. */
 .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
@@ -143,11 +143,15 @@ footer { padding-top: 0; display: flex; flex-direction: column; gap: 4px; }
 .stat-value { font-size: 24px; font-weight: 600; line-height: 1.2; }
 
 /* Holdings: cards in a grid that adapts to one or many. */
-.holdings { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-.holding { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.holding-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.holding-head strong { font-size: 16px; }
-.holding .hero-pair strong { font-size: 15px; }
+.holdings { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.holding { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.holding-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.holding-ticker { font-size: 17px; font-weight: 700; }
+.holding-values { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.holding-values .right { text-align: right; }
+.holding-main { font-size: 26px; font-weight: 700; line-height: 1.1; margin-top: 2px; }
+.holding-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; font-size: 13px; color: var(--muted); }
+.holding-note { border-top: 1px dashed var(--line); padding-top: 8px; }
 
 /* Header actions: links + one primary; on phones the links fold into a ⋯ menu. */
 button.quiet { border: none; background: none; color: var(--muted); padding: 10px 8px; }
@@ -203,14 +207,13 @@ select.pill { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; border-
   .hero-actions { display: block; }
   button { padding: 10px 12px; }
 
-  .hero { grid-template-columns: 1fr; gap: 10px; }
-  .hero-main, .hero-side { padding: 16px 18px; }
-  .hero-value { font-size: 44px; }
-  .hero-context { font-size: 14px; }
-  .hero-pair { font-size: 15px; gap: 10px; }
-  .hero-pair strong { font-size: 20px; }
-  .hero-side .help { font-size: 12px; }
+  .summary { padding: 16px 18px; }
+  .summary-value { font-size: 32px; }
+  .summary-facts { gap: 10px; }
+  .fact { font-size: 16px; }
+  .label { font-size: 13px; }
   .holdings { grid-template-columns: 1fr; }
+  .holding-main { font-size: 22px; }
   .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat { padding: 12px 14px; }
   .stat-value { font-size: 20px; }

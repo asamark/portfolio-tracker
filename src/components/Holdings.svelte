@@ -1,32 +1,36 @@
 <script>
-  import { eur, eurCents, colorClass } from '../lib/format.js';
+  import { eur, eurCents } from '../lib/format.js';
   let { rows } = $props();
   const signedCents = (n) => (n >= 0 ? '+' : '−') + eurCents(Math.abs(n));
   const qty = (n) => n.toFixed(4).replace(/\.?0+$/, '');
   const money = (n) => (Math.abs(n) >= 1000 ? eur(n) : eurCents(n));
+  const pill = (n) => (n > 0 ? 'pill-up' : n < 0 ? 'pill-down' : 'pill-flat');
 </script>
 
 <div class="holdings">
   {#each rows as h (h.ticker)}
     <div class="holding">
       <div class="holding-head">
-        <div><strong>{h.ticker}</strong>{#if h.name}<span class="help">&nbsp;· {h.name}</span>{/if}{#if h.gifted > 0}<span class="help">&nbsp;· {h.bought > 0 ? 'part gift' : 'gift'}</span>{/if}</div>
-        <div class="strong {colorClass(h.diff)}">{signedCents(h.diff)}</div>
+        <div>
+          <div class="holding-ticker">{h.ticker}</div>
+          {#if h.name}<div class="help">{h.name}</div>{/if}
+        </div>
+        <div class="pill-return {pill(h.diff)}">{signedCents(h.diff)}</div>
       </div>
-      <div class="hero-pair">
-        <span class="label">Put in</span><strong>{money(h.putIn)}</strong>
-        <span class="arrow" aria-hidden="true">→</span>
-        <span class="label">Worth</span><strong>{money(h.worth)}</strong>
+      <div class="holding-values">
+        <div><div class="label">Current value</div><div class="holding-main">{money(h.worth)}</div></div>
+        <div class="right"><div class="label">Invested</div><div class="fact">{money(h.putIn)}</div></div>
       </div>
-      <div class="help">
-        {qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}
-        {#if h.gifted > 0 && h.bought > 0} · {qty(h.gifted)} gifted, {qty(h.bought)} bought at €{h.avgPaidEur.toFixed(2)}
-        {:else if h.bought > 0} · paid €{h.avgPaidEur.toFixed(2)} avg{/if}
-        · now €{h.priceEur.toFixed(2)} ({h.price.toFixed(2)} {h.currency})
+      <div class="holding-foot">
+        <span>{qty(h.shares)} {Math.abs(h.shares - 1) < 1e-9 ? 'share' : 'shares'}{#if h.gifted > 0} · {qty(h.gifted)} gifted{/if}</span>
+        <span>{#if h.bought > 0}Avg. €{h.avgPaidEur.toFixed(2)} / share · {/if}now €{h.priceEur.toFixed(2)}</span>
       </div>
+      {#if h.gifted > 0}
+        <div class="help holding-note">
+          {#if h.bought > 0}{qty(h.gifted)} of these shares were a gift (€0 invested), so most of this return is the gift's value, not investment performance.
+          {:else}These shares were a gift (€0 invested), so the whole value shows as return — it is not investment performance.{/if}
+        </div>
+      {/if}
     </div>
   {/each}
 </div>
-{#if rows.some((h) => h.gifted > 0)}
-  <div class="help">Gifted shares count as €0 put in, so their whole value is earning. Averages include fees.</div>
-{/if}

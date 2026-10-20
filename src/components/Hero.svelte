@@ -1,32 +1,31 @@
 <script>
-  import { eur, signed, pct, colorClass, longDate, todayIso } from '../lib/format.js';
+  import { eurCents, eur, signed, pct, colorClass, longDate, todayIso } from '../lib/format.js';
   let { head, lastSeen } = $props();
 
   const isToday = $derived(head.date === todayIso());
   const sinceLast = $derived(
     lastSeen && head && lastSeen.date !== head.date ? head.worth - lastSeen.worth - (head.putIn - lastSeen.putIn) : null
   );
+  const signedCents = (n) => (n >= 0 ? '+' : '−') + eurCents(Math.abs(n));
+  const pillClass = $derived(head.diff > 0 ? 'pill-up' : head.diff < 0 ? 'pill-down' : 'pill-flat');
 </script>
 
-<div class="hero">
-  <div class="hero-main">
-    <div class="label">My earning so far</div>
-    <div class="hero-value {colorClass(head.diff)}">{signed(head.diff)}</div>
-    <div class="hero-context">
-      {#if head.putIn > 0}{pct(head.pctGain)} vs. leaving it in the bank{:else}All from gifted shares{/if}
-      {#if head.since} · since {longDate(head.since)}{/if}
-      {#if sinceLast !== null} · <span class={colorClass(sinceLast)}>{signed(sinceLast)}</span> since you last looked{/if}
+<div class="summary">
+  <div class="label">Total portfolio value</div>
+  <div class="summary-row">
+    <div class="summary-value">{eurCents(head.worth)}</div>
+    <div class="pill-return {pillClass}">
+      {signedCents(head.diff)}{#if head.putIn > 0}&nbsp;({pct(head.pctGain)}){/if}
     </div>
   </div>
-  <div class="hero-side">
-    <div class="hero-pair">
-      <span class="label">Put in</span><strong>{eur(head.putIn)}</strong>
-      <span class="arrow" aria-hidden="true">→</span>
-      <span class="label">{isToday ? 'Worth today' : 'Worth'}</span><strong>{eur(head.worth)}</strong>
-    </div>
-    <div class="help">
-      {#if head.cash > 0.5}{eur(head.cash)} cash not yet invested · {eur(head.cash + head.worth)} total at the broker{:else}Everything is invested · {eur(head.worth)} at the broker{/if}
-      {#if !isToday} · prices from {longDate(head.date)}{/if}
-    </div>
+  <div class="help">
+    Total return{#if head.since}&nbsp;since {longDate(head.since)}{/if}{#if head.putIn === 0}, all from gifted shares{/if}.
+    {#if sinceLast !== null}<span class={colorClass(sinceLast)}>{signed(sinceLast)}</span> since you last looked.{/if}
+    {#if !isToday} Prices from {longDate(head.date)}.{/if}
+  </div>
+  <div class="summary-facts">
+    <div><div class="label">Invested</div><div class="fact">{eur(head.putIn)}</div></div>
+    <div><div class="label">Uninvested cash</div><div class="fact">{eur(Math.max(0, head.cash))}</div></div>
+    <div><div class="label">Total at broker</div><div class="fact">{eur(Math.max(0, head.cash) + head.worth)}</div></div>
   </div>
 </div>

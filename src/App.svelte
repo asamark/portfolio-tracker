@@ -131,7 +131,7 @@
 
     <section class="section">
       <div class="row between">
-        <h2>Money put in vs. what it's worth</h2>
+        <h2>Invested vs. portfolio value</h2>
         {#if tickers.length > 1}
           <select class="pill" bind:value={chartTicker} aria-label="Which holding to show">
             <option value="">All holdings</option>
