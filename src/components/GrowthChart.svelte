@@ -87,7 +87,25 @@
     else { chart.data = cfg.data; chart.options = cfg.options; chart.update(); }
   });
 
-  onMount(() => () => chart?.destroy());
+  // On touch screens a tap leaves the tooltip up (nothing "leaves" the chart). Hide it on a tap
+  // elsewhere, and on its own after a few seconds.
+  let hideTimer;
+  function hideTooltip() {
+    if (!chart) return;
+    chart.setActiveElements([]);
+    chart.tooltip?.setActiveElements([], { x: 0, y: 0 });
+    chart.update();
+  }
+  onMount(() => {
+    const onTouch = (e) => {
+      if (canvas && canvas.contains(e.target)) {
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(hideTooltip, 4000);
+      } else hideTooltip();
+    };
+    document.addEventListener('touchstart', onTouch, { passive: true });
+    return () => { document.removeEventListener('touchstart', onTouch); clearTimeout(hideTimer); chart?.destroy(); };
+  });
 </script>
 
 <div class="chart-box"><canvas bind:this={canvas}></canvas></div>
