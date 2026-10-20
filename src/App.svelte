@@ -134,16 +134,6 @@
       <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
     </section>
 
-    <div class="folds">
-      {#if stats}
-        <Collapsible id="stats" title="Statistics">
-          <Statistics {stats} />
-        </Collapsible>
-      {/if}
-      <Collapsible id="period" title={(buckets.unit === 'month' ? 'Month by month' : 'Year by year') + (chartTicker ? ' – ' + chartTicker : '')}>
-        <PeriodTable rows={periodRows} unit={buckets.unit} />
-      </Collapsible>
-    </div>
   {:else if valid && !loading}
     <div class="notice">
       {#if !data.prices.length}The sheet has no price rows yet. Run <code>fetchDaily</code> once in Apps Script, then press Refresh.
@@ -152,6 +142,16 @@
   {/if}
 
   <div class="folds">
+    {#if head && stats}
+      <Collapsible id="stats" title="Statistics">
+        <Statistics {stats} />
+      </Collapsible>
+    {/if}
+    {#if head}
+      <Collapsible id="period" title={(buckets.unit === 'month' ? 'Month by month' : 'Year by year') + (chartTicker ? ' – ' + chartTicker : '')}>
+        <PeriodTable rows={periodRows} unit={buckets.unit} />
+      </Collapsible>
+    {/if}
     <Collapsible id="purchases" title="All my purchases">
       <Transactions {transactions} {busy} onEdit={(t) => { formError = ''; form = { kind: 'tx', editing: t }; }} onDelete={removeTx} />
     </Collapsible>

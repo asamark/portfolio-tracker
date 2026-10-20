@@ -59,8 +59,7 @@ h2 { margin: 0; font-size: 18px; font-weight: 600; }
 .card .sub { font-size: 13px; color: var(--faint); }
 
 .section { display: flex; flex-direction: column; gap: 16px; }
-.folds { display: flex; flex-direction: column; }
-.folds + .folds { margin-top: -40px; }
+.folds { display: flex; flex-direction: column; border-bottom: 1px solid var(--line); }
 .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .row.between { justify-content: space-between; }
 
@@ -136,7 +135,7 @@ select {
 .donut-box { width: 200px; height: 200px; flex: 0 0 200px; position: relative; }
 .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
 
-footer { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 4px; }
+footer { padding-top: 0; display: flex; flex-direction: column; gap: 4px; }
 
 /* Collapsible sections (native <details>). */
 .fold { border-top: 1px solid var(--line); }
