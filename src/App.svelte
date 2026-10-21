@@ -9,6 +9,7 @@
   import Hero from './components/Hero.svelte';
   import Holdings from './components/Holdings.svelte';
   import GrowthChart from './components/GrowthChart.svelte';
+  import Breakdown from './components/Breakdown.svelte';
   import PeriodTable from './components/PeriodTable.svelte';
   import Transactions from './components/Transactions.svelte';
   import CashList from './components/CashList.svelte';
@@ -29,6 +30,7 @@
   let formError = $state('');
   let chartTicker = $state('');     // '' = everything
   let menuOpen = $state(false);
+  let chartView = $state('time');   // 'time' | 'breakdown'
 
   const valid = $derived(data && Array.isArray(data.prices));
   const tickers = $derived(valid ? data.tickers : []);
@@ -131,15 +133,25 @@
 
     <section class="section">
       <div class="row between">
-        <h2>Invested vs. portfolio value</h2>
-        {#if tickers.length > 1}
-          <select class="pill" bind:value={chartTicker} aria-label="Which holding to show">
-            <option value="">All holdings</option>
-            {#each tickers as t}<option value={t.ticker}>{t.ticker}</option>{/each}
-          </select>
-        {/if}
+        <h2>{chartView === 'time' ? 'Invested vs. portfolio value' : 'Where the money is'}</h2>
+        <div class="row" style="gap: 8px">
+          {#if chartView === 'time' && tickers.length > 1}
+            <select class="pill" bind:value={chartTicker} aria-label="Which holding to show">
+              <option value="">All holdings</option>
+              {#each tickers as t}<option value={t.ticker}>{t.ticker}</option>{/each}
+            </select>
+          {/if}
+          <div class="seg" role="group" aria-label="Chart view">
+            <button class:on={chartView === 'time'} aria-pressed={chartView === 'time'} onclick={() => (chartView = 'time')}>Over time</button>
+            <button class:on={chartView === 'breakdown'} aria-pressed={chartView === 'breakdown'} onclick={() => (chartView = 'breakdown')}>Breakdown</button>
+          </div>
+        </div>
       </div>
-      <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
+      {#if chartView === 'time'}
+        <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
+      {:else}
+        <Breakdown holdings={held} cash={head.cash} />
+      {/if}
     </section>
 
     <section class="section">
