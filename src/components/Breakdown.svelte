@@ -1,23 +1,30 @@
 <script>
-  /** Donut: where the money is right now — one slice per holding, plus uninvested cash. */
+  /** Donut: what the portfolio value is made of — money put in vs. money earned (or lost). */
   import { onMount } from 'svelte';
   import { Chart, DoughnutController, ArcElement, Tooltip } from 'chart.js';
   import { eur } from '../lib/format.js';
 
   Chart.register(DoughnutController, ArcElement, Tooltip);
 
-  let { holdings, cash } = $props();
+  let { putIn, worth } = $props();
   let canvas;
   let chart;
 
-  const palette = ['#2563eb', '#7c3aed', '#0891b2', '#1e40af', '#9333ea', '#0e7490', '#60a5fa', '#a78bfa', '#67e8f9'];
+  const diff = $derived(worth - putIn);
   const slices = $derived.by(() => {
-    const items = holdings.map((h, i) => ({ label: h.ticker, name: h.name, value: h.worth, color: palette[i % palette.length] }));
-    if (cash > 0.5) items.push({ label: 'Cash', name: 'not yet invested', value: cash, color: '#d1d5db' });
-    const total = items.reduce((s, x) => s + x.value, 0);
-    return items.map((x) => ({ ...x, pct: total ? (x.value / total) * 100 : 0 })).sort((a, b) => b.value - a.value);
+    if (diff >= 0) {
+      return [
+        { label: 'Money I put in', value: putIn, color: '#d1d5db' },
+        { label: 'Earned', value: diff, color: '#15803d' },
+      ];
+    }
+    return [
+      { label: 'My money still there', value: worth, color: '#d1d5db' },
+      { label: 'Lost so far', value: -diff, color: '#b91c1c' },
+    ];
   });
-  const total = $derived(slices.reduce((s, x) => s + x.value, 0));
+  const base = $derived(diff >= 0 ? worth : putIn);
+  const pc = (v) => (base ? ((v / base) * 100).toFixed(1) : '0.0') + '%';
 
   $effect(() => {
     const data = { labels: slices.map((s) => s.label), datasets: [{ data: slices.map((s) => s.value), backgroundColor: slices.map((s) => s.color), borderWidth: 2, borderColor: '#ffffff' }] };
@@ -25,7 +32,7 @@
       chart = new Chart(canvas, {
         type: 'doughnut',
         data,
-        options: { cutout: '66%', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${eur(c.raw)} (${slices[c.dataIndex].pct.toFixed(1)}%)` } } } },
+        options: { cutout: '66%', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${eur(c.raw)} (${pc(c.raw)})` } } } },
       });
     } else { chart.data = data; chart.update(); }
   });
@@ -36,8 +43,8 @@
   <div class="donut-box">
     <canvas bind:this={canvas}></canvas>
     <div class="donut-center">
-      <div class="donut-total">{eur(total)}</div>
-      <div class="help">at the broker</div>
+      <div class="donut-total">{eur(worth)}</div>
+      <div class="help">{diff >= 0 ? 'worth today' : 'worth today'}</div>
     </div>
   </div>
   <div class="key">
@@ -45,11 +52,14 @@
       <div class="key-item">
         <span class="swatch" style="background: {s.color}"></span>
         <div class="key-text">
-          <div><strong>{s.label}</strong>{#if s.name}<span class="help">&nbsp;· {s.name}</span>{/if}</div>
-          <div class="help">{eur(s.value)} · {s.pct.toFixed(1)}%</div>
+          <div><strong class={s.color === '#15803d' ? 'green' : s.color === '#b91c1c' ? 'red' : ''}>{eur(s.value)}</strong> {s.label.toLowerCase()}</div>
+          <div class="help">{pc(s.value)}{#if s.label === 'Money I put in'} of today's value{:else if s.label === 'Earned'} of today's value{:else} of what I put in{/if}</div>
         </div>
       </div>
     {/each}
   </div>
 </div>
-<div class="help">How the money at the broker is split between holdings and uninvested cash, at the latest prices.</div>
+<div class="help">
+  {#if diff >= 0}Out of every €100 in shares today, about €{Math.round(base ? (putIn / base) * 100 : 100)} is my own money and €{Math.round(base ? (diff / base) * 100 : 0)} is what the investment earned.
+  {:else}The shares are worth less than I paid. Nothing is lost for real unless I sell.{/if}
+</div>

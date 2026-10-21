@@ -39,6 +39,7 @@
   const summary = $derived(valid ? buildSummary(data) : []);
   const chartSummary = $derived(chartTicker ? buildSummary(data, chartTicker) : summary);
   const head = $derived(headline(summary, transactions));
+  const chartHead = $derived(chartTicker ? headline(chartSummary, transactions) : head);
   const held = $derived(valid ? holdings(data, summary) : []);
   const buckets = $derived(pickBuckets(chartSummary));
   const periodRows = $derived(withPeriodChange(buckets.rows));
@@ -133,9 +134,9 @@
 
     <section class="section">
       <div class="row between">
-        <h2>{chartView === 'time' ? 'Invested vs. portfolio value' : 'Where the money is'}</h2>
+        <h2>{chartView === 'time' ? 'Invested vs. portfolio value' : 'Put in vs. earned'}</h2>
         <div class="row" style="gap: 8px">
-          {#if chartView === 'time' && tickers.length > 1}
+          {#if tickers.length > 1}
             <select class="pill" bind:value={chartTicker} aria-label="Which holding to show">
               <option value="">All holdings</option>
               {#each tickers as t}<option value={t.ticker}>{t.ticker}</option>{/each}
@@ -150,7 +151,7 @@
       {#if chartView === 'time'}
         <GrowthChart summary={chartSummary} buckets={buckets.rows} unit={buckets.unit} />
       {:else}
-        <Breakdown holdings={held} cash={head.cash} />
+        <Breakdown putIn={chartHead.putIn} worth={chartHead.worth} />
       {/if}
     </section>
 
